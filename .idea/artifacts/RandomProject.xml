@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="RandomProject">
+    <output-path>$PROJECT_DIR$/out/artifacts/RandomProject</output-path>
+    <root id="archive" name="RandomProject.jar">
+      <element id="module-output" name="AutoDownloader" />
+    </root>
+  </artifact>
+</component>
