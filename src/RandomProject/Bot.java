@@ -8,6 +8,7 @@ import java.util.*;
 import java.awt.event.KeyEvent;
 import java.awt.Toolkit;
 import java.awt.datatransfer.*;
+import java.util.regex.Pattern;
 
 class Automaton implements ClipboardOwner {
 
@@ -39,6 +40,7 @@ class Automaton implements ClipboardOwner {
         stackTable.put("CLIPBOARD", new Stack<>());
         this.queueTable = new Hashtable<>();
         queueTable.put("CLIPBOARD", new PriorityQueue<>());
+        this.preloadValues();
     }
 
     public void setDelayTime(int newTime){
@@ -55,8 +57,13 @@ class Automaton implements ClipboardOwner {
     private boolean setupProgram(){
         while (true) {
             try {
-                System.out.print("Setup Bot>: Provide the file that contains your program:    ");
+                System.out.print("Setup Bot>: Provide the file that contains your program: ");
                 String fileName = scio.nextLine();
+                while(!fileName.endsWith(".txt")) {
+                    System.out.println("Setup Bot>: Error in file format, Expected '.txt'. Provide the name again.");
+                    System.out.print("Setup Bot>: Provide the file that contains your program: ");
+                    fileName = scio.nextLine();
+                }
 
                 RPTCompiler compiler = new RPTCompiler();
                 LinkedList<Command> generatedProgram = compiler.analyse(fileName);
@@ -90,6 +97,49 @@ class Automaton implements ClipboardOwner {
             catch (Exception e) {
                 System.out.println("Setup Bot>: Syntax error detected in your program. Rejecting Program...");
             }
+        }
+    }
+
+    public void preloadValues(){
+        try {
+
+            Pattern stack = Pattern.compile("[Ss][Tt][Aa][Cc][Kk]");
+            Pattern queue = Pattern.compile("[Qq][Uu][Ee][Uu][Ee]");
+            System.out.println("Setup Bot>: Searching for 'preload.txt' to load values into Clipboard before starting execution...");
+
+            BufferedReader br = new BufferedReader(new FileReader("preload.txt"));
+            String line;
+            LinkedList<String> lines = new LinkedList<>();
+            for(; ((line = br.readLine()) != null) ;) {
+                lines.add(new String(line));
+            }
+
+            if(lines.size() > 1) {
+                if (stack.matcher(lines.peek()).matches()) {
+                    lines.removeFirst();
+                    Stack<String> preloadStack = this.stackTable.get("CLIPBOARD");
+                    if(preloadStack == null) throw new Exception("Stack not found, proceeding.");
+                    for (String pvalue: lines) {
+                        preloadStack.push(pvalue);
+                    }
+                }
+                else if(queue.matcher(lines.peek()).matches()) {
+                    lines.removeFirst();
+                    PriorityQueue<String> preloadQueue = this.queueTable.get("CLIPBOARD");
+                    if(preloadQueue == null) throw new Exception("Queue not found, proceeding.");
+                    for (String pvalue: lines) {
+                        preloadQueue.add(pvalue);
+                    }
+                }
+                else throw new Exception("Error detected in preload file format, proceeding.");
+                System.out.println("Setup Bot>: Preload complete, proceeding.");
+            }
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("Setup Bot>: File not found, proceeding.");
+        }
+        catch (Exception e) {
+            System.out.println("Setup Bot>: " + e.getMessage());
         }
     }
 
