@@ -15,6 +15,8 @@ class Token {
         CTRL, SHIFT, ALT,
         LETTER, NUMBER, SPACE, ENTER, ESC, PERIOD, COMMA, DELETE,
         PLUS, DASH, SLASH, ASTERISK,
+        SCREENCAP,
+        HOME, END, PGUP, PGDOWN,
         LARROW, UARROW, RARROW, DARROW,
         WINDOWS, TAB, FUNCTION,
         WAIT, PAUSE, HALT, VAR, ARRAY, ID,
@@ -111,7 +113,9 @@ public class RPTCompiler {
     // Special Atomical Keys
     private Pattern tokenWindows, tokenEnter, tokenTab, tokenEsc, tokenFunction, tokenDelete,
             tokenLArrow, tokenUArrow, tokenRArrow, tokenDArrow,
-            tokenPlus, tokenDash, tokenSlash, tokenAsterisk;
+            tokenPlus, tokenDash, tokenSlash, tokenAsterisk,
+            tokenScreenCap,
+            tokenHome, tokenEnd, tokenPgUp, tokenPgDown;
 
     // Combinational Keys
     private Pattern tokenCtrl, tokenShift, tokenAlt;
@@ -160,6 +164,12 @@ public class RPTCompiler {
         this.tokenDash = Pattern.compile("-");
         this.tokenSlash = Pattern.compile("/");
         this.tokenAsterisk = Pattern.compile("\\*");
+
+        this.tokenScreenCap = Pattern.compile("[Ss][Cc][Rr][Ee][Ee][Nn][Cc][Aa][Pp]");
+        this.tokenHome = Pattern.compile("[Hh][Oo][Mm][Ee]");
+        this.tokenEnd = Pattern.compile("[Ee][Nn][Dd]");
+        this.tokenPgUp = Pattern.compile("[Pp][Gg][Uu][Pp]");
+        this.tokenPgDown = Pattern.compile("[Pp][Gg][Dd][Oo][Ww][Nn]");
 
         this.tokenCtrl = Pattern.compile("[Cc][Tt][Rr][Ll]");
         this.tokenShift = Pattern.compile("[Ss][Hh][Ii][Ff][Tt]");
@@ -235,6 +245,12 @@ public class RPTCompiler {
             else if(tokenDash.matcher(stringPiece).matches()) return new Token("DASH", Token.TypeToken.DASH, Token.SystemToken.KEYBOARD, lineNumber);
             else if(tokenSlash.matcher(stringPiece).matches()) return new Token("SLASH", Token.TypeToken.SLASH, Token.SystemToken.KEYBOARD, lineNumber);
             else if(tokenAsterisk.matcher(stringPiece).matches()) return new Token("ASTERISK", Token.TypeToken.ASTERISK, Token.SystemToken.KEYBOARD, lineNumber);
+            // Useful Keys
+            else if(tokenScreenCap.matcher(stringPiece).matches()) return new Token("SCREENCAP", Token.TypeToken.SCREENCAP, Token.SystemToken.KEYBOARD, lineNumber);
+            else if(tokenHome.matcher(stringPiece).matches()) return new Token("HOME", Token.TypeToken.HOME, Token.SystemToken.KEYBOARD, lineNumber);
+            else if(tokenEnd.matcher(stringPiece).matches()) return new Token("END", Token.TypeToken.END, Token.SystemToken.KEYBOARD, lineNumber);
+            else if(tokenPgUp.matcher(stringPiece).matches()) return new Token("PGUP", Token.TypeToken.PGUP, Token.SystemToken.KEYBOARD, lineNumber);
+            else if(tokenPgDown.matcher(stringPiece).matches()) return new Token("PGDOWN", Token.TypeToken.PGDOWN, Token.SystemToken.KEYBOARD, lineNumber);
                 // Stack
             else if(tokenPush.matcher(stringPiece).matches()
                     || tokenPop.matcher(stringPiece).matches()
@@ -276,7 +292,7 @@ public class RPTCompiler {
             }
             else if(stringPiece.isEmpty()) return new Token("", Token.TypeToken.IGNORE, Token.SystemToken.SYSTEM, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -288,7 +304,7 @@ public class RPTCompiler {
             }
             else if(stringPiece.isEmpty()) return new Token("", Token.TypeToken.IGNORE, Token.SystemToken.SYSTEM, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -303,7 +319,7 @@ public class RPTCompiler {
             }
             else if(tokenString.matcher(stringPiece).matches()) return new Token(stringPiece, Token.TypeToken.STRING, Token.SystemToken.SYSTEM, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -316,7 +332,7 @@ public class RPTCompiler {
             }
             else if(tokenString.matcher(stringPiece).matches()) return new Token(stringPiece, Token.TypeToken.STRING, Token.SystemToken.SYSTEM, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -328,7 +344,7 @@ public class RPTCompiler {
             }
             else if(tokenString.matcher(stringPiece).matches()) return new Token(stringPiece, Token.TypeToken.STRING, Token.SystemToken.PSEUDO, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -339,7 +355,7 @@ public class RPTCompiler {
             }
             else if(stringPiece.isEmpty()) return new Token("", Token.TypeToken.IGNORE, Token.SystemToken.SYSTEM, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -350,7 +366,7 @@ public class RPTCompiler {
             }
             else if(stringPiece.isEmpty()) return new Token("", Token.TypeToken.IGNORE, Token.SystemToken.SYSTEM, lineNumber);
             else {
-                System.out.println("Not recognized key");
+                System.out.println("Not recognized key: " + stringPiece);
                 throw new Exception("RPT Error: Syntax error, unrecognized command.");
             }
         }
@@ -383,7 +399,10 @@ public class RPTCompiler {
                 || token.isEqual(Token.TypeToken.LARROW) || token.isEqual(Token.TypeToken.UARROW)
                 || token.isEqual(Token.TypeToken.RARROW) || token.isEqual(Token.TypeToken.DARROW)
                 || token.isEqual(Token.TypeToken.PLUS) || token.isEqual(Token.TypeToken.DASH)
-                || token.isEqual(Token.TypeToken.ASTERISK) || token.isEqual(Token.TypeToken.SLASH)){
+                || token.isEqual(Token.TypeToken.ASTERISK) || token.isEqual(Token.TypeToken.SLASH)
+                || token.isEqual(Token.TypeToken.SCREENCAP)
+                || token.isEqual(Token.TypeToken.HOME) || token.isEqual(Token.TypeToken.END)
+                || token.isEqual(Token.TypeToken.PGUP) || token.isEqual(Token.TypeToken.PGDOWN)){
             command.addKey(tokens.poll());
             return true;
         }

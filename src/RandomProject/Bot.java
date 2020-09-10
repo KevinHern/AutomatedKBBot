@@ -26,7 +26,7 @@ class Automaton implements ClipboardOwner {
     private Hashtable<String, String> symbolTableString;
     private Hashtable<String, Integer> symbolTableInt;
     private Hashtable<String, Stack<String>> stackTable;
-    private Hashtable<String, PriorityQueue<String>> queueTable;
+    private Hashtable<String, LinkedList<String>> queueTable;
 
     Automaton(int delayTime, int repetitions){
         this.delayTime = delayTime;
@@ -39,7 +39,7 @@ class Automaton implements ClipboardOwner {
         this.stackTable = new Hashtable<>();
         stackTable.put("CLIPBOARD", new Stack<>());
         this.queueTable = new Hashtable<>();
-        queueTable.put("CLIPBOARD", new PriorityQueue<>());
+        queueTable.put("CLIPBOARD", new LinkedList<>());
         this.preloadValues();
     }
 
@@ -111,6 +111,7 @@ class Automaton implements ClipboardOwner {
             String line;
             LinkedList<String> lines = new LinkedList<>();
             for(; ((line = br.readLine()) != null) ;) {
+                if (line.isEmpty()) continue;
                 lines.add(new String(line));
             }
 
@@ -120,18 +121,22 @@ class Automaton implements ClipboardOwner {
                     Stack<String> preloadStack = this.stackTable.get("CLIPBOARD");
                     if(preloadStack == null) throw new Exception("Stack not found, proceeding.");
                     for (String pvalue: lines) {
+                        System.out.println("Setup Bot>: Preloading Value: " + pvalue);
                         preloadStack.push(pvalue);
                     }
                 }
                 else if(queue.matcher(lines.peek()).matches()) {
                     lines.removeFirst();
-                    PriorityQueue<String> preloadQueue = this.queueTable.get("CLIPBOARD");
+                    LinkedList<String> preloadQueue = this.queueTable.get("CLIPBOARD");
                     if(preloadQueue == null) throw new Exception("Queue not found, proceeding.");
                     for (String pvalue: lines) {
+                        System.out.println("Setup Bot>: Preloading Value: " + pvalue);
                         preloadQueue.add(pvalue);
                     }
                 }
                 else throw new Exception("Error detected in preload file format, proceeding.");
+
+
                 System.out.println("Setup Bot>: Preload complete, proceeding.");
             }
         }
@@ -368,6 +373,21 @@ class Automaton implements ClipboardOwner {
             case "DARROW":
                 toPress = KeyEvent.VK_DOWN;
                 break;
+            case "SCREENCAP":
+                toPress = KeyEvent.VK_PRINTSCREEN;
+                break;
+            case "HOME":
+                toPress = KeyEvent.VK_HOME;
+                break;
+            case "END":
+                toPress = KeyEvent.VK_END;
+                break;
+            case "PGUP":
+                toPress = KeyEvent.VK_PAGE_UP;
+                break;
+            case "PGDOWN":
+                toPress = KeyEvent.VK_PAGE_DOWN;
+                break;
             case "F1":
                 toPress = KeyEvent.VK_F1;
                 break;
@@ -471,20 +491,20 @@ class Automaton implements ClipboardOwner {
                 case "PUSH":
                     String pushStr = (String)Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
                     stackTable.get(args.get(1).getValue()).push(pushStr);
-                    System.out.println("Bot >: Successfully saved " + pushStr + " to the CLIPBOARD Stack.");
+                    System.out.println("Bot>: Successfully saved " + pushStr + " to the CLIPBOARD Stack.");
                     break;
                 case "POP":
                     tempStr = stackTable.get(args.get(1).getValue()).pop();
                     if(tempStr != null) {
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(tempStr), this);
-                        System.out.println("Bot >: Successfully popped " + tempStr + " from the CLIPBOARD Stack.");
+                        System.out.println("Bot>: Successfully popped " + tempStr + " from the CLIPBOARD Stack.");
                     }
                     break;
                 case "PEEK":
                     tempStr = stackTable.get(args.get(1).getValue()).peek();
                     if(tempStr != null) {
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(tempStr), this);
-                        System.out.println("Bot >: Successfully peeked " + tempStr + " from the CLIPBOARD Stack.");
+                        System.out.println("Bot>: Successfully peeked " + tempStr + " from the CLIPBOARD Stack.");
                     }
                     break;
                 case "CLEARS":
@@ -495,29 +515,29 @@ class Automaton implements ClipboardOwner {
                 case "ADD":
                     String addStr = (String)Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
                     queueTable.get(args.get(1).getValue()).add(addStr);
-                    System.out.println("Bot >: Successfully added " + addStr + " to the CLIPBOARD Queue.");
+                    System.out.println("Bot>: Successfully added " + addStr + " to the CLIPBOARD Queue.");
                     break;
                 case "POLL":
                     tempStr = queueTable.get(args.get(1).getValue()).poll();
                     if(tempStr != null) {
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(tempStr), this);
-                        System.out.println("Bot >: Successfully polled " + tempStr + " from the CLIPBOARD Queue.");
+                        System.out.println("Bot>: Successfully polled " + tempStr + " from the CLIPBOARD Queue.");
                     }
                     break;
                 case "GLIMPSE":
                     tempStr = queueTable.get(args.get(1).getValue()).peek();
                     if(tempStr != null) {
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(tempStr), this);
-                        System.out.println("Bot >: Successfully glimpsed " + tempStr + " from the CLIPBOARD Queue.");
+                        System.out.println("Bot>: Successfully glimpsed " + tempStr + " from the CLIPBOARD Queue.");
                     }
                     break;
                 case "CIRC":
                     tempStr = queueTable.get(args.get(1).getValue()).poll();
                     if(tempStr != null) {
-                        System.out.println("Bot >: Successfully retrieved " + tempStr + " from the CLIPBOARD Queue.");
+                        System.out.println("Bot>: Successfully retrieved " + tempStr + " from the CLIPBOARD Queue.");
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(tempStr), this);
-                        queueTable.get(args.get(1).getValue()).add(tempStr);
-                        System.out.println("Bot >: Successfully added " + tempStr + " to the CLIPBOARD Queue.");
+                        queueTable.get(args.get(1).getValue()).addLast(tempStr);
+                        System.out.println("Bot>: Successfully added " + tempStr + " to the CLIPBOARD Queue.");
                     }
                     break;
                 case "CLEARQ":
